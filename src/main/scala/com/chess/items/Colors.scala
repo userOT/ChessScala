@@ -4,8 +4,8 @@ object Colors {
 
   sealed trait CellColor extends Product with Serializable
 
-  case object Black extends CellColor
+  case object BlackCell extends CellColor
 
-  case object White extends CellColor
+  case object WhiteCell extends CellColor
 
 }

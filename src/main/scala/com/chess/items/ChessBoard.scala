@@ -1,7 +1,7 @@
 package com.chess.items
 
-import com.chess.items.ChessBoard.{CellItem, ChessCell, Position, plusName}
-import com.chess.items.Colors.{Black, CellColor, White}
+import com.chess.items.ChessBoard.{CellItem, ChessCell, Move, Position, plusName}
+import com.chess.items.Colors.{BlackCell, CellColor, WhiteCell}
 import com.chess.items.Pieces.Piece
 
 trait ChessBoard {
@@ -14,7 +14,9 @@ trait ChessBoard {
 
   def fillWithDefaultPiecePositions(): ChessBoard
 
-  def changeCell(to: String, piece: Piece): ChessBoard
+  def changeCell(to: String, piece: Piece, player: Player): ChessBoard
+
+  def changeCell(from: String, to: String, player: Player): ChessBoard
 
   def createDefaultBoard: ChessBoard
 }
@@ -32,22 +34,33 @@ case class SimpleChessBoard(cell: ChessCell) extends ChessBoard {
       (piece, positions) <- pl.getDefaultPiecesPositions()
       position <- positions
     } yield {
-      changeCell(position, piece)
+      changeCell(position, piece, pl)
     }).last
   }
 
-  override def changeCell(to: String, piece: Piece): ChessBoard = {
+  override def changeCell(to: String, piece: Piece, player: Player): ChessBoard = {
     val present = for {
       l <- cell
       n <- l
-    } yield if (n.position == to) Some(n) else None
+    } yield if (n.classicPosition == to) Some(n) else None
     present.flatten.headOption match {
       case Some(value) =>
         val position = value.originalPosition
-        cell(position.x)(position.y) = value.copy(value = Some(piece))
+        cell(position.x)(position.y) = value.copy(piece = Some(piece), player = Some(player))
         SimpleChessBoard(cell)
       case None => throw new UnsupportedOperationException
     }
+  }
+
+  def changeCell(from: String, to: String, player: Player): ChessBoard = {
+    (findCell(from), findCell(to)) match {
+      case (Some(f), Some(_)) if f.piece.isEmpty => throw new UnsupportedOperationException("Can't move not existing piece")
+      case (Some(f), Some(d)) =>
+        cell(f.originalPosition.x)(f.originalPosition.y) = f.copy(piece = None, player = None)
+        cell(d.originalPosition.x)(d.originalPosition.y) = d.copy(piece = f.piece, player = Some(player))
+      case _ => throw new UnsupportedOperationException
+    }
+    SimpleChessBoard(cell)
   }
 
   override def createDefaultBoard: ChessBoard = {
@@ -56,17 +69,32 @@ case class SimpleChessBoard(cell: ChessCell) extends ChessBoard {
       (y, yIndex) <- (1 to 8).toArray.zipWithIndex
     } yield {
       if ((x + y) % 2 == 0)
-        cell(xIndex)(yIndex) = CellItem(plusName(yIndex, xIndex), White, None, Position(xIndex, yIndex))
+        cell(xIndex)(yIndex) = CellItem(plusName(yIndex, xIndex), WhiteCell, None, Position(xIndex, yIndex), None)
       else
-        cell(xIndex)(yIndex) = CellItem(plusName(yIndex, xIndex), Black, None, Position(xIndex, yIndex))
+        cell(xIndex)(yIndex) = CellItem(plusName(yIndex, xIndex), BlackCell, None, Position(xIndex, yIndex), None)
     }
     SimpleChessBoard(cell)
   }
 
   override def makePlayersMoves(moves: Seq[String]): ChessBoard = {
+    val splitMoves = moves.map(mv => mv.splitAt(2)).zipWithIndex.map {
+      case ((from, to), index) if index == 0 => Move(WhitePlayer, from, to)
+      case ((from, to), index) if index % 2 != 0 => Move(BlackPlayer, from, to)
+      case ((from, to), _) => Move(WhitePlayer, from, to)
+    }
+    splitMoves.map(move => {
+      println(s"Player ${move.player} make move from ${move.from} to ${move.to}")
+      changeCell(move.from, move.to, move.player)
+    }).last
+  }
 
-    this
-
+  private def findCell(classicPosition: String): Option[CellItem] = {
+    val present = for {
+      l <- cell
+      n <- l
+      if n.classicPosition == classicPosition
+    } yield n
+    present.headOption
   }
 }
 
@@ -76,7 +104,9 @@ object ChessBoard {
 
   case class Position(x: Int, y: Int)
 
-  def apply(): ChessBoard = SimpleChessBoard( Array.ofDim[CellItem](8, 8)).createDefaultBoard
+  case class Move(player: Player, from: String, to: String)
+
+  def apply(): ChessBoard = SimpleChessBoard(Array.ofDim[CellItem](8, 8)).createDefaultBoard
     .createDefaultBoard
 
   val DefaultLetters = "abcdefgh"
@@ -87,9 +117,9 @@ object ChessBoard {
     else s"${DefaultLetters.charAt(x)}${DefaultNumbers.charAt(y)}"
   }
 
-  case class CellItem(position: String, color: CellColor, value: Option[Piece], originalPosition: Position) {
+  case class CellItem(classicPosition: String, color: CellColor, piece: Option[Piece], originalPosition: Position, player: Option[Player]) {
 
-    override def toString: String = s"[$position -> $color -> $value]"
+    override def toString: String = s"[$classicPosition -> $color -> $piece -> $player]"
 
   }
 
