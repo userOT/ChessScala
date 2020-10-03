@@ -11,5 +11,17 @@ class ChessSpec extends FlatSpec {
     val chessGame = ChessGame(checkMateMoves)
     chessGame.play()
   }
+
+  it should "create new game with another moves" in {
+    val checkMateMoves = MovesReader.read("src/resources/sample-moves.txt")
+    val chessGame = ChessGame(checkMateMoves)
+    chessGame.play()
+  }
+
+  it should "create new game for not valid" in {
+    val checkMateMoves = MovesReader.read("src/resources/sample-moves-invalid.txt")
+    val chessGame = ChessGame(checkMateMoves)
+    chessGame.play()
+  }
 }
 

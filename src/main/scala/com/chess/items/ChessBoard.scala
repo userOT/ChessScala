@@ -56,6 +56,7 @@ case class SimpleChessBoard(cell: ChessCell) extends ChessBoard {
     (findCell(from), findCell(to)) match {
       case (Some(f), Some(_)) if f.piece.isEmpty => throw new UnsupportedOperationException("Can't move not existing piece")
       case (Some(f), Some(d)) =>
+        validateMove(f.piece.get, f.originalPosition, d.originalPosition)
         cell(f.originalPosition.x)(f.originalPosition.y) = f.copy(piece = None, player = None)
         cell(d.originalPosition.x)(d.originalPosition.y) = d.copy(piece = f.piece, player = Some(player))
       case _ => throw new UnsupportedOperationException
@@ -86,6 +87,10 @@ case class SimpleChessBoard(cell: ChessCell) extends ChessBoard {
       println(s"Player ${move.player} make move from ${move.from} to ${move.to}")
       changeCell(move.from, move.to, move.player)
     }).last
+  }
+
+  private def validateMove(piece: Piece, from: Position, to: Position) = {
+    if (piece.validMove(from, to)) piece else throw new RuntimeException
   }
 
   private def findCell(classicPosition: String): Option[CellItem] = {

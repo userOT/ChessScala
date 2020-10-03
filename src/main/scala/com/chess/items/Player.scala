@@ -1,8 +1,7 @@
 package com.chess.items
 
 import com.chess.items.ChessBoard.DefaultLetters
-import com.chess.items.Pieces.{Bishop, King, Knight, Pawn, Piece, Queen, Rook}
-import com.chess.items.Players.PlayerMoves
+import com.chess.items.Pieces._
 
 trait Player extends Product with Serializable {
 
