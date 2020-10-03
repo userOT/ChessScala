@@ -1,6 +1,6 @@
 package com.chess
 
-import com.chess.items.Board
+import com.chess.items.ChessBoard
 import com.chess.items.Pieces.Pawn
 import org.scalatest.FlatSpec
 
