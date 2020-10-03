@@ -28,7 +28,8 @@ object Pieces {
   }
 
   case object Knight extends Piece {
-    override def validMove(from: Position, to: Position): Boolean = true
+    override def validMove(from: Position, to: Position): Boolean =
+      (Math.abs(to.x - from.x) == 1 && Math.abs(to.y - from.y) == 2) || (Math.abs(to.x - from.x) == 2 && Math.abs(to.y - from.y) == 1)
   }
 
   case object Rook extends Piece {

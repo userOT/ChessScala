@@ -37,7 +37,7 @@ case object WhitePlayer extends Player {
   override def getDefaultPiecesPositions(): Map[Piece, Seq[String]] =
     Map(
       Pawn -> DefaultLetters.map(_ + 2.toString),
-      King -> Seq("e2"),
+      King -> Seq("e1"),
       Queen -> Seq("d1"),
       Bishop -> Seq("c1", "f1"),
       Rook -> Seq("a1", "h1"),
