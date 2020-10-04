@@ -7,7 +7,7 @@ trait Player extends Product with Serializable {
 
   def move(piece: Piece, from: String, to: String)
 
-  def getDefaultPiecesPositions(): Map[Piece, Seq[String]]
+  def getDefaultPiecesPositions: Map[Piece, Seq[String]]
 }
 
 case object BlackPlayer extends Player {
@@ -17,7 +17,7 @@ case object BlackPlayer extends Player {
 
   }
 
-  override def getDefaultPiecesPositions(): Map[Piece, Seq[String]] =
+  override def getDefaultPiecesPositions: Map[Piece, Seq[String]] =
     Map(
       Pawn -> DefaultLetters.map(_ + 7.toString),
       King -> Seq("e8"),
@@ -34,7 +34,7 @@ case object WhitePlayer extends Player {
     println(s"White player is moving from $from to $to with piece $piece")
   }
 
-  override def getDefaultPiecesPositions(): Map[Piece, Seq[String]] =
+  override def getDefaultPiecesPositions: Map[Piece, Seq[String]] =
     Map(
       Pawn -> DefaultLetters.map(_ + 2.toString),
       King -> Seq("e1"),

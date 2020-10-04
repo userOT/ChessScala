@@ -24,5 +24,11 @@ class ChessSpec extends FlatSpec {
     val chessGame = ChessGame(checkMateMoves)
     a[RuntimeException] shouldBe thrownBy (chessGame.play())
   }
+
+  it should "invalid-piece-on-way.txt" in {
+    val checkMateMoves = MovesReader.read("src/resources/invalid-piece-on-way.txt")
+    val chessGame = ChessGame(checkMateMoves)
+    a[RuntimeException] shouldBe thrownBy (chessGame.play())
+}
 }
 

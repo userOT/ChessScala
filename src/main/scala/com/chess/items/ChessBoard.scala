@@ -2,7 +2,7 @@ package com.chess.items
 
 import com.chess.items.ChessBoard.{CellItem, ChessCell, Move, Position, plusName}
 import com.chess.items.Colors.{BlackCell, CellColor, WhiteCell}
-import com.chess.items.Pieces.Piece
+import com.chess.items.Pieces.{Piece, Rook}
 
 trait ChessBoard {
 
@@ -13,10 +13,6 @@ trait ChessBoard {
   def print(): Unit
 
   def fillWithDefaultPiecePositions(): ChessBoard
-
-  def changeCell(to: String, piece: Piece, player: Player): ChessBoard
-
-  def changeCell(from: String, to: String, player: Player): ChessBoard
 
   def createDefaultBoard: ChessBoard
 }
@@ -31,37 +27,11 @@ case class SimpleChessBoard(cell: ChessCell) extends ChessBoard {
     val players = Players.players
     (for {
       pl <- players
-      (piece, positions) <- pl.getDefaultPiecesPositions()
+      (piece, positions) <- pl.getDefaultPiecesPositions
       position <- positions
     } yield {
       changeCell(position, piece, pl)
     }).last
-  }
-
-  override def changeCell(to: String, piece: Piece, player: Player): ChessBoard = {
-    val present = for {
-      l <- cell
-      n <- l
-    } yield if (n.classicPosition == to) Some(n) else None
-    present.flatten.headOption match {
-      case Some(value) =>
-        val position = value.originalPosition
-        cell(position.x)(position.y) = value.copy(piece = Some(piece), player = Some(player))
-        SimpleChessBoard(cell)
-      case None => throw new UnsupportedOperationException
-    }
-  }
-
-  def changeCell(from: String, to: String, player: Player): ChessBoard = {
-    (findCell(from), findCell(to)) match {
-      case (Some(f), Some(_)) if f.piece.isEmpty => throw new UnsupportedOperationException(s"Can't move not existing piece $f")
-      case (Some(f), Some(d)) =>
-        validateMove(f.piece.get, f.originalPosition, d.originalPosition)
-        cell(f.originalPosition.x)(f.originalPosition.y) = f.copy(piece = None, player = None)
-        cell(d.originalPosition.x)(d.originalPosition.y) = d.copy(piece = f.piece, player = Some(player))
-      case _ => throw new UnsupportedOperationException
-    }
-    SimpleChessBoard(cell)
   }
 
   override def createDefaultBoard: ChessBoard = {
@@ -85,12 +55,46 @@ case class SimpleChessBoard(cell: ChessCell) extends ChessBoard {
     }
     splitMoves.map(move => {
       println(s"Player ${move.player} make move from ${move.from} to ${move.to}")
-      changeCell(move.from, move.to, move.player)
+      updateBoardWithMove(move.from, move.to, move.player)
     }).last
   }
 
+  def updateBoardWithMove(from: String, to: String, player: Player): ChessBoard = {
+    (findCell(from), findCell(to)) match {
+      case (Some(f), Some(_)) if f.piece.isEmpty => throw new UnsupportedOperationException(s"Can't move not existing piece $f")
+      case (Some(f), Some(d)) =>
+        validateMove(f.piece.get, f.originalPosition, d.originalPosition)
+        cell(f.originalPosition.x)(f.originalPosition.y) = f.copy(piece = None, player = None)
+        cell(d.originalPosition.x)(d.originalPosition.y) = d.copy(piece = f.piece, player = Some(player))
+      case _ => throw new UnsupportedOperationException
+    }
+    SimpleChessBoard(cell)
+  }
+
+   def changeCell(to: String, piece: Piece, player: Player): ChessBoard = {
+    val present = for {
+      l <- cell
+      n <- l
+    } yield if (n.classicPosition == to) Some(n) else None
+    present.flatten.headOption match {
+      case Some(value) =>
+        val position = value.originalPosition
+        cell(position.x)(position.y) = value.copy(piece = Some(piece), player = Some(player))
+        SimpleChessBoard(cell)
+      case None => throw new UnsupportedOperationException
+    }
+  }
+
+  private def checkPath(from: CellItem, to: CellItem, piece: Piece) = {
+     if(piece == Rook) {
+       val item = cell(from.originalPosition.x)(to.originalPosition.y)
+
+
+     }
+  }
+
   private def validateMove(piece: Piece, from: Position, to: Position) = {
-    if (piece.validMove(from, to)) piece else throw new RuntimeException(s"Piece $piece can't go to cell $to from $from")
+    if (piece.isValidMove(from, to)) piece else throw new RuntimeException(s"Piece $piece can't go to cell $to from $from")
   }
 
   private def findCell(classicPosition: String): Option[CellItem] = {
