@@ -1,6 +1,6 @@
 package com.chess.items
 
-import com.chess.items.ChessBoard.DefaultLetters
+import com.chess.items.board.ChessBoard.DefaultLetters
 import com.chess.items.Pieces._
 
 trait Player extends Product with Serializable {
